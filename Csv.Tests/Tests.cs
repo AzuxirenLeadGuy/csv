@@ -658,6 +658,34 @@ namespace Csv.Tests
             Assert.AreEqual(" Never gonna give you up Never gonna let you down", merged);
         }
         [TestMethod]
+        [TestCategory("GetColumn")]
+        public void GetColumnTest_name_1()
+        {
+            var options = new CsvOptions();
+            var database = CsvReader.ReadFromText(smalldatabase, options);
+            var c1 = database.GetColumn("A");
+            CollectionAssert.AreEqual(c1.ToArray(), Enumerable.Range(1, 10).Select(x => x.ToString()).ToArray());
+        }
+        [TestMethod]
+        [TestCategory("GetColumn")]
+        public void GetColumnTest_name_2()
+        {
+            var options = new CsvOptions();
+            var database = CsvReader.ReadFromText(smalldatabase, options);
+            var c2 = database.GetColumn("B").ToArray();
+            Assert.AreEqual(10, c2.Length);
+        }
+        [TestMethod]
+        [TestCategory("GetColumn")]
+        public void GetColumnTest_name_3()
+        {
+            var options = new CsvOptions();
+            var database = CsvReader.ReadFromText(smalldatabase, options);
+            var c3 = database.GetColumn("C").ToArray();
+            string merged = c3.Aggregate("", (x, y) => x + " " + y);
+            Assert.AreEqual(" Never gonna give you up Never gonna let you down", merged);
+        }
+        [TestMethod]
         [TestCategory("GetColumn<T>")]
         public void GetColumnGenericTest_1()
         {
@@ -680,6 +708,31 @@ namespace Csv.Tests
         {
             var database = CsvReader.ReadFromText(smalldatabase);
             var c4 = database.GetColumn(3, x => int.Parse(x) % 10).ToArray();
+            CollectionAssert.AreEqual(c4, new int[] { 5, 8, 2, 2, 3, 4, 5, 7, 3, 2 });
+        }
+        [TestMethod]
+        [TestCategory("GetColumn<T>")]
+        public void GetColumnGenericTest_name_1()
+        {
+            var database = CsvReader.ReadFromText(smalldatabase);
+            var c1 = database.GetColumn("A", x => int.Parse(x)).ToArray();
+            CollectionAssert.AreEqual(c1, Enumerable.Range(1, 10).ToArray());
+        }
+        [TestMethod]
+        [TestCategory("GetColumn<T>")]
+        public void GetColumnGenericTest_name_2()
+        {
+            var database = CsvReader.ReadFromText(smalldatabase);
+            var c2 = database.GetColumn("B", x => double.Parse(x)).ToArray();
+            double sum = c2.Aggregate(0.0, (x, y) => x + y);
+            Assert.AreEqual(sum, 494.81);
+        }
+        [TestMethod]
+        [TestCategory("GetColumn<T>")]
+        public void GetColumnGenericTest_name_3()
+        {
+            var database = CsvReader.ReadFromText(smalldatabase);
+            var c4 = database.GetColumn("D", x => int.Parse(x) % 10).ToArray();
             CollectionAssert.AreEqual(c4, new int[] { 5, 8, 2, 2, 3, 4, 5, 7, 3, 2 });
         }
         [TestMethod]

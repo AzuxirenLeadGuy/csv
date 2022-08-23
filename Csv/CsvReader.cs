@@ -59,20 +59,16 @@ namespace Csv
 
         private static IEnumerable<ICsvLine> ReadFromStreamImpl(Stream stream, CsvOptions? options)
         {
-            using (var reader = new StreamReader(stream))
-            {
-                foreach (var line in ReadImpl(reader, options))
-                    yield return line;
-            }
+            using var reader = new StreamReader(stream);
+            foreach (var line in ReadImpl(reader, options))
+                yield return line;
         }
 
         private static IEnumerable<ICsvLine> ReadFromTextImpl(string csv, CsvOptions? options)
         {
-            using (var reader = new StringReader(csv))
-            {
-                foreach (var line in ReadImpl(reader, options))
-                    yield return line;
-            }
+            using var reader = new StringReader(csv);
+            foreach (var line in ReadImpl(reader, options))
+                yield return line;
         }
 
         private static IEnumerable<ICsvLine> ReadImpl(TextReader reader, CsvOptions? options)
@@ -392,7 +388,23 @@ namespace Csv
         /// <returns>An enumeration of the transformed 
         /// values of the selected column</returns>
         public static IEnumerable<T> GetColumn<T>(this IEnumerable<ICsvLine> lines, int columnNo, Func<string, T> transform) => lines.Select(x => transform(x[columnNo]));
-
+        /// <summary>
+        /// Gets a single column from the entire Enumeration of `ICsvLine`
+        /// </summary>
+        /// <param name="lines">The enumeration of `ICsvLine`</param>
+        /// <param name="columnName">The name of the the column 
+        /// to extract</param>
+        /// <param name="transform">The transformation function to parse 
+        /// from the string values</param>
+        /// <typeparam name="T">The datatype to transform 
+        /// the string inputs into</typeparam>
+        /// <returns>An enumeration of the transformed 
+        /// values of the selected column</returns>
+        public static IEnumerable<T> GetColumn<T>(this IEnumerable<ICsvLine> lines, string columnName, Func<string, T> transform) 
+        {
+            int columnNo = Array.IndexOf(lines.First().Headers, columnName);
+            return lines.GetColumn(columnNo, transform);
+        }
         /// <summary>
         /// Gets a single column from the entire Enumeration of `ICsvLine`
         /// </summary>
@@ -402,6 +414,16 @@ namespace Csv
         /// <returns>An enumerations of the string values of 
         /// the selected column</returns>
         public static IEnumerable<string> GetColumn(this IEnumerable<ICsvLine> lines, int columnNo) => lines.GetColumn(columnNo, (x) => x);
+
+        /// <summary>
+        /// Gets a single column from the entire Enumeration of `ICsvLine`
+        /// </summary>
+        /// <param name="lines">The enumeration of `ICsvLine`</param>
+        /// <param name="columnName">The name of the the 
+        /// column to extract</param>
+        /// <returns>An enumerations of the string values of 
+        /// the selected column</returns>
+        public static IEnumerable<string> GetColumn(this IEnumerable<ICsvLine> lines, string columnName) => lines.GetColumn(columnName, (x) => x);
         /// <summary>
         /// Gets a range/block of values from the given enumeration of `ICsvLine`
         /// </summary>
@@ -429,9 +451,9 @@ namespace Csv
             {
                 MemoryText[] headers;
                 if (length < 0 || start + length >= line.ColumnCount)
-                    headers = line.Headers.Skip(start).Select(x=>x.AsMemory()).ToArray();
+                    headers = line.Headers.Skip(start).Select(x => x.AsMemory()).ToArray();
                 else
-                    headers = line.Headers.Skip(start).Take(length).Select(x=>x.AsMemory()).ToArray();
+                    headers = line.Headers.Skip(start).Take(length).Select(x => x.AsMemory()).ToArray();
                 MemoryText[] values = headers.Select(x => line[x.ToString()].AsMemory()).ToArray();
                 Dictionary<string, int> map = Enumerable.Range(0, headers.Length).ToDictionary(x => headers[x].ToString());
                 return new ReadLine(headers, map, line.Index, line.Raw, new CsvOptions()) { parsedLine = values };
